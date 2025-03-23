@@ -1,68 +1,20 @@
-// models/studentModel.js
-import mongoose from 'mongoose';
-import bcrypt from 'bcryptjs';
+const mongoose = require("mongoose");
 
 const grocerySchema = new mongoose.Schema({
-    firstName: {
-        type: String,
-        required: true
-    },
-    
-    lastName: {
-        type: String,
-        required: true
-    },
-    email: {
-        type: String,
-        required: true,
-        unique: true // triggers duplicate error if the same email is used again
-    },
-    password: {
-        type: String,
-        required: true
-    },
-    address: {
-        type: String,
-        required: true,
-        unique: true // "all address must be unique"
-    },
-    age: {
-        type: Number,
-        required: true,
-        min: 18 // "Age more than 18"
-    },
-    marks: {
-        Biology: { type: Number, default: 0 },
-        Chemistry: { type: Number, default: 0 },
-        Physics: { type: Number, default: 0 },
-        Computer: { type: Number, default: 0 },
-        Geography: { type: Number, default: 0 },
-        History: { type: Number, default: 0 },
-        Science: { type: Number, default: 0 },
-        English: { type: Number, default: 0 },
-        Mathematics: { type: Number, default: 0 }
-    },
-    profilePicture: {
-        type: String,
-        default: ''
-    },
-    createdAt: {
-        type: Date,
-        default: Date.now
-    }
-});
+    name: { type: String, required: true },  // Item Name (e.g., "Milk")
+    category: { type: String, required: true }, // Category (e.g., Dairy, Vegetables)
+    quantity: { type: Number, required: true, min: 1 }, // Quantity (e.g., 2 kg)
+    unit: { type: String, required: true }, // Measurement Unit (kg, g, liters, etc.)
+    price: { type: Number, default: 0 }, // Estimated price per unit (optional)
+    totalCost: { type: Number, default: 0 }, // Auto-calculated (price × quantity)
+    storeName: { type: String, default: "Unknown" }, // Store Name (Optional)
+}, { timestamps: true });
 
-// Hash password before saving
-studentSchema.pre('save', async function (next) {
-    if (!this.isModified('password')) return next();
-    this.password = await bcrypt.hash(this.password, 12);
+// Middleware to auto-calculate totalCost before saving
+grocerySchema.pre("save", function (next) {
+    this.totalCost = this.price * this.quantity;
     next();
 });
 
-// Compare password method
-studentSchema.methods.comparePassword = async function (candidatePassword) {
-    return await bcrypt.compare(candidatePassword, this.password);
-};
-
-const Student = mongoose.model('Student', studentSchema);
-export default Student;
+const Grocery = mongoose.model("Grocery", grocerySchema);
+module.exports = Grocery;
