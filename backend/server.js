@@ -1,31 +1,46 @@
-require("dotenv").config();
 const express = require("express");
-const mongoose = require("mongoose");
 const cors = require("cors");
+const dotenv = require("dotenv");
+const connectDB = require("./config/db");
+const groceryRoutes = require("./routes/groceryRoutes");
+const inventoryRoutes = require("./routes/inventoryRoutes");
 
-const groceryRoutes = require("./routes/groceryRoutes"); // Import routes
+// Load env vars
+dotenv.config();
+
+// Connect to database
+connectDB();
 
 const app = express();
 
 // Middleware
-app.use(express.json()); // Parse JSON requests
-app.use(cors());         // Enable CORS
+app.use(express.json());
+app.use(cors({
+  origin: 'http://localhost:5173', // Vite's default port
+  credentials: true
+}));
 
-// Connect to MongoDB (Updated: Removed deprecated options)
-mongoose.connect(process.env.MONGO_URI)
-    .then(() => console.log("MongoDB Connection Successful!"))
-    .catch(err => console.error("MongoDB Connection Failed:", err));
-
-// Test Route
-app.get("/", (req, res) => {
-    res.send("Smart Grocery Backend is Running!");
+// Test route
+app.get('/api/test', (req, res) => {
+  res.json({ message: 'Backend server is running!' });
 });
 
-// Use Grocery Routes
+// Routes
 app.use("/api/groceries", groceryRoutes);
+app.use("/api/inventory", inventoryRoutes);
 
-// Start the Server
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error('Error:', err);
+  res.status(500).json({ 
+    message: 'Something went wrong!', 
+    error: process.env.NODE_ENV === 'development' ? err.message : undefined
+  });
+});
+
 const PORT = process.env.PORT || 5000;
+
 app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
+  console.log(`Test the server at http://localhost:${PORT}/api/test`);
 });
