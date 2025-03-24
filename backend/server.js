@@ -4,6 +4,7 @@ const dotenv = require("dotenv");
 const connectDB = require("./config/db");
 const groceryRoutes = require("./routes/groceryRoutes");
 const inventoryRoutes = require("./routes/inventoryRoutes");
+const authRoutes = require("./routes/authRoutes");
 
 // Load env vars
 dotenv.config();
@@ -26,6 +27,7 @@ app.get('/api/test', (req, res) => {
 });
 
 // Routes
+app.use("/api/auth", authRoutes);
 app.use("/api/groceries", groceryRoutes);
 app.use("/api/inventory", inventoryRoutes);
 

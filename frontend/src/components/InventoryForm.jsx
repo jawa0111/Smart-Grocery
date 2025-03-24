@@ -12,7 +12,8 @@ const InventoryForm = () => {
     location: "Pantry",
     notes: "",
   });
-  const [error, setError] = useState("");
+  const [errors, setErrors] = useState({});
+  const [apiError, setApiError] = useState("");
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
@@ -30,7 +31,7 @@ const InventoryForm = () => {
         });
       } catch (error) {
         console.error("Error parsing pre-filled data:", error);
-        setError("Error loading pre-filled data");
+        setApiError("Error loading pre-filled data");
       }
     } else if (id) {
       fetchInventoryDetails();
@@ -47,33 +48,92 @@ const InventoryForm = () => {
       });
     } catch (error) {
       console.error("Error fetching inventory details:", error);
-      setError("Error loading inventory details");
+      setApiError("Error loading inventory details");
     } finally {
       setLoading(false);
     }
   };
 
+  const validateForm = () => {
+    const newErrors = {};
+
+    // Name validation
+    if (!inventory.name.trim()) {
+      newErrors.name = 'Item name is required';
+    } else if (inventory.name.length < 2) {
+      newErrors.name = 'Item name must be at least 2 characters long';
+    }
+
+    // Category validation
+    if (!inventory.category.trim()) {
+      newErrors.category = 'Category is required';
+    } else if (inventory.category.length < 2) {
+      newErrors.category = 'Category must be at least 2 characters long';
+    }
+
+    // Quantity validation
+    if (!inventory.quantity) {
+      newErrors.quantity = 'Quantity is required';
+    } else if (isNaN(inventory.quantity) || Number(inventory.quantity) < 0) {
+      newErrors.quantity = 'Quantity must be a non-negative number';
+    }
+
+    // Unit validation
+    if (!inventory.unit.trim()) {
+      newErrors.unit = 'Unit is required';
+    } else if (inventory.unit.length < 1) {
+      newErrors.unit = 'Unit must be at least 1 character long';
+    }
+
+    // Expiry date validation
+    if (!inventory.expiryDate) {
+      newErrors.expiryDate = 'Expiry date is required';
+    } else {
+      const selectedDate = new Date(inventory.expiryDate);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      if (selectedDate < today) {
+        newErrors.expiryDate = 'Expiry date cannot be in the past';
+      }
+    }
+
+    // Location validation
+    const validLocations = ["Pantry", "Fridge", "Freezer", "Cupboard", "Other"];
+    if (!validLocations.includes(inventory.location)) {
+      newErrors.location = 'Invalid storage location';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleChange = (e) => {
-    setInventory({ ...inventory, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setInventory(prev => ({
+      ...prev,
+      [name]: value
+    }));
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }));
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
+    setApiError('');
     setLoading(true);
 
-    try {
-      // Validate required fields
-      const requiredFields = ['name', 'category', 'quantity', 'unit', 'expiryDate', 'location'];
-      const missingFields = requiredFields.filter(field => !inventory[field]);
-      
-      if (missingFields.length > 0) {
-        setError(`Please fill in all required fields: ${missingFields.join(', ')}`);
-        setLoading(false);
-        return;
-      }
+    if (!validateForm()) {
+      setLoading(false);
+      return;
+    }
 
-      // Convert quantity to number
+    try {
       const inventoryData = {
         ...inventory,
         quantity: Number(inventory.quantity)
@@ -90,14 +150,14 @@ const InventoryForm = () => {
       const errorMessage = error.response?.data?.message || 
                           error.response?.data?.error || 
                           "Error saving inventory item";
-      setError(errorMessage);
+      setApiError(errorMessage);
       
       // If there are validation errors, display them
       if (error.response?.data?.details) {
         const validationErrors = Object.values(error.response.data.details)
           .map(err => err.message)
           .join(', ');
-        setError(`${errorMessage}: ${validationErrors}`);
+        setApiError(`${errorMessage}: ${validationErrors}`);
       }
     } finally {
       setLoading(false);
@@ -130,9 +190,9 @@ const InventoryForm = () => {
             </Link>
           </div>
 
-          {error && (
+          {apiError && (
             <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-md">
-              <p className="text-red-600">{error}</p>
+              <p className="text-red-600">{apiError}</p>
             </div>
           )}
 
@@ -148,9 +208,14 @@ const InventoryForm = () => {
                 value={inventory.name}
                 onChange={handleChange}
                 required
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                className={`mt-1 block w-full rounded-md ${
+                  errors.name ? 'border-red-300' : 'border-gray-300'
+                } shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm`}
                 placeholder="e.g., Milk, Eggs, Bread"
               />
+              {errors.name && (
+                <p className="mt-1 text-sm text-red-600">{errors.name}</p>
+              )}
             </div>
 
             <div>
@@ -164,9 +229,14 @@ const InventoryForm = () => {
                 value={inventory.category}
                 onChange={handleChange}
                 required
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                className={`mt-1 block w-full rounded-md ${
+                  errors.category ? 'border-red-300' : 'border-gray-300'
+                } shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm`}
                 placeholder="e.g., Dairy, Produce, Pantry"
               />
+              {errors.category && (
+                <p className="mt-1 text-sm text-red-600">{errors.category}</p>
+              )}
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -183,9 +253,14 @@ const InventoryForm = () => {
                   required
                   min="0"
                   step="0.01"
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  className={`mt-1 block w-full rounded-md ${
+                    errors.quantity ? 'border-red-300' : 'border-gray-300'
+                  } shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm`}
                   placeholder="e.g., 2"
                 />
+                {errors.quantity && (
+                  <p className="mt-1 text-sm text-red-600">{errors.quantity}</p>
+                )}
               </div>
 
               <div>
@@ -199,9 +274,14 @@ const InventoryForm = () => {
                   value={inventory.unit}
                   onChange={handleChange}
                   required
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  className={`mt-1 block w-full rounded-md ${
+                    errors.unit ? 'border-red-300' : 'border-gray-300'
+                  } shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm`}
                   placeholder="e.g., kg, g, liters"
                 />
+                {errors.unit && (
+                  <p className="mt-1 text-sm text-red-600">{errors.unit}</p>
+                )}
               </div>
             </div>
 
@@ -216,8 +296,13 @@ const InventoryForm = () => {
                 value={inventory.expiryDate}
                 onChange={handleChange}
                 required
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                className={`mt-1 block w-full rounded-md ${
+                  errors.expiryDate ? 'border-red-300' : 'border-gray-300'
+                } shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm`}
               />
+              {errors.expiryDate && (
+                <p className="mt-1 text-sm text-red-600">{errors.expiryDate}</p>
+              )}
             </div>
 
             <div>
@@ -230,7 +315,9 @@ const InventoryForm = () => {
                 value={inventory.location}
                 onChange={handleChange}
                 required
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                className={`mt-1 block w-full rounded-md ${
+                  errors.location ? 'border-red-300' : 'border-gray-300'
+                } shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm`}
               >
                 <option value="Pantry">Pantry</option>
                 <option value="Fridge">Fridge</option>
@@ -238,6 +325,9 @@ const InventoryForm = () => {
                 <option value="Cupboard">Cupboard</option>
                 <option value="Other">Other</option>
               </select>
+              {errors.location && (
+                <p className="mt-1 text-sm text-red-600">{errors.location}</p>
+              )}
             </div>
 
             <div>
