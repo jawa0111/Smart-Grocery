@@ -1,18 +1,20 @@
 const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
+const http = require("http");  // Required for Socket.io
 const connectDB = require("./config/db");
 const groceryRoutes = require("./routes/groceryRoutes");
 const inventoryRoutes = require("./routes/inventoryRoutes");
 const authRoutes = require("./routes/authRoutes");
 
-// Load env vars
+// Load environment variables
 dotenv.config();
 
 // Connect to database
 connectDB();
 
 const app = express();
+const server = http.createServer(app);  // Create HTTP server
 
 // Middleware
 app.use(express.json());
@@ -23,7 +25,7 @@ app.use(cors({
 
 // Test route
 app.get('/api/test', (req, res) => {
-  res.json({ message: 'Backend server is running!' });
+  res.json({ message: 'Backend server is running with Socket.io!' });
 });
 
 // Routes
@@ -40,9 +42,12 @@ app.use((err, req, res, next) => {
   });
 });
 
+
+
+
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
   console.log(`Test the server at http://localhost:${PORT}/api/test`);
 });
