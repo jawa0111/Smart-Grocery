@@ -6,6 +6,7 @@ const connectDB = require("./config/db");
 const groceryRoutes = require("./routes/groceryRoutes");
 const inventoryRoutes = require("./routes/inventoryRoutes");
 const authRoutes = require("./routes/authRoutes");
+const userRoutes = require("./routes/userRoutes");
 
 // Load environment variables
 dotenv.config();
@@ -32,6 +33,7 @@ app.get('/api/test', (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/groceries", groceryRoutes);
 app.use("/api/inventory", inventoryRoutes);
+app.use("/api/user", userRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -41,9 +43,6 @@ app.use((err, req, res, next) => {
     error: process.env.NODE_ENV === 'development' ? err.message : undefined
   });
 });
-
-
-
 
 const PORT = process.env.PORT || 5000;
 
