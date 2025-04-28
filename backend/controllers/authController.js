@@ -1,4 +1,5 @@
 const User = require('../models/userModel');
+const jwt = require('jsonwebtoken');
 
 // @desc    Register new user
 // @route   POST /api/auth/register
@@ -28,11 +29,19 @@ const registerUser = async (req, res) => {
     });
 
     if (user) {
+      // Generate token
+      const token = jwt.sign(
+        { id: user._id },
+        process.env.JWT_SECRET,
+        { expiresIn: '30d' }
+      );
+
       res.status(201).json({
         _id: user._id,
         name: user.name,
         email: user.email,
-        role: user.role
+        role: user.role,
+        token
       });
     }
   } catch (error) {
@@ -50,11 +59,19 @@ const loginUser = async (req, res) => {
     // Check for user email
     const user = await User.findOne({ email }).select('+password');
     if (user && (await user.matchPassword(password))) {
+      // Generate token
+      const token = jwt.sign(
+        { id: user._id },
+        process.env.JWT_SECRET,
+        { expiresIn: '30d' }
+      );
+
       res.json({
         _id: user._id,
         name: user.name,
         email: user.email,
-        role: user.role
+        role: user.role,
+        token
       });
     } else {
       res.status(401).json({ message: 'Invalid email or password' });

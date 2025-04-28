@@ -19,6 +19,7 @@ const UserProfile = () => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (user?._id) {
@@ -28,10 +29,16 @@ const UserProfile = () => {
 
   const fetchUserProfile = async () => {
     try {
+      setLoading(true);
+      setError('');
       const response = await axios.get(`/user/profile/${user._id}`);
+      console.log('Fetched profile:', response.data);
       setProfile(response.data);
     } catch (err) {
+      console.error('Fetch error:', err);
       setError('Failed to fetch user profile');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -45,12 +52,19 @@ const UserProfile = () => {
 
   const handleUpdate = async (e) => {
     e.preventDefault();
+    setError('');
+    setSuccess('');
+    
     try {
-      await axios.put(`/user/profile/${user._id}`, profile);
+      const response = await axios.put(`/user/profile/${user._id}`, profile);
+      console.log('Update response:', response.data);
       setSuccess('Profile updated successfully');
       setIsEditing(false);
+      // Refresh the profile data
+      await fetchUserProfile();
     } catch (err) {
-      setError('Failed to update profile');
+      console.error('Update error:', err);
+      setError(err.response?.data?.message || 'Failed to update profile');
     }
   };
 
@@ -68,6 +82,14 @@ const UserProfile = () => {
     return <Navigate to="/login" />;
   }
 
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-600"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-2xl mx-auto p-6">
       <h2 className="text-2xl font-bold mb-6">User Profile</h2>
@@ -81,7 +103,7 @@ const UserProfile = () => {
           <input
             type="text"
             name="name"
-            value={profile.name}
+            value={profile.name || ''}
             onChange={handleInputChange}
             disabled={!isEditing}
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
@@ -93,7 +115,7 @@ const UserProfile = () => {
           <input
             type="email"
             name="email"
-            value={profile.email}
+            value={profile.email || ''}
             disabled
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm bg-gray-50"
           />
@@ -104,7 +126,7 @@ const UserProfile = () => {
           <input
             type="tel"
             name="phone"
-            value={profile.phone}
+            value={profile.phone || ''}
             onChange={handleInputChange}
             disabled={!isEditing}
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
@@ -116,7 +138,7 @@ const UserProfile = () => {
           <input
             type="text"
             name="address"
-            value={profile.address}
+            value={profile.address || ''}
             onChange={handleInputChange}
             disabled={!isEditing}
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
@@ -129,7 +151,7 @@ const UserProfile = () => {
             <input
               type="text"
               name="city"
-              value={profile.city}
+              value={profile.city || ''}
               onChange={handleInputChange}
               disabled={!isEditing}
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
@@ -141,7 +163,7 @@ const UserProfile = () => {
             <input
               type="text"
               name="state"
-              value={profile.state}
+              value={profile.state || ''}
               onChange={handleInputChange}
               disabled={!isEditing}
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
@@ -154,7 +176,7 @@ const UserProfile = () => {
           <input
             type="text"
             name="zipCode"
-            value={profile.zipCode}
+            value={profile.zipCode || ''}
             onChange={handleInputChange}
             disabled={!isEditing}
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"

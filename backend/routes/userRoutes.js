@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const { protect } = require('../middleware/authMiddleware');
 const {
   getUserProfile,
   updateUserProfile,
@@ -7,12 +8,12 @@ const {
 } = require('../controllers/userController');
 
 // Get user profile
-router.get('/profile/:id', getUserProfile);
+router.get('/profile/:id', protect, getUserProfile);
 
 // Update user profile
-router.put('/profile/:id', updateUserProfile);
+router.put('/profile/:id', protect, updateUserProfile);
 
 // Delete user profile
-router.delete('/profile/:id', deleteUserProfile);
+router.delete('/profile/:id', protect, deleteUserProfile);
 
 module.exports = router; 

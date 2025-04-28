@@ -15,6 +15,11 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  role: {
+    type: String,
+    enum: ['user', 'inventory_manager'],
+    default: 'user'
+  },
   phone: {
     type: String,
     default: ''
@@ -51,7 +56,7 @@ userSchema.pre('save', async function(next) {
 });
 
 // Method to compare password
-userSchema.methods.comparePassword = async function(candidatePassword) {
+userSchema.methods.matchPassword = async function(candidatePassword) {
   return await bcrypt.compare(candidatePassword, this.password);
 };
 
