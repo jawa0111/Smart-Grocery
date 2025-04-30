@@ -11,6 +11,12 @@ const userRoutes = require("./routes/userRoutes");
 // Load environment variables
 dotenv.config();
 
+// Debug environment variables
+console.log('Environment variables loaded:');
+console.log('JWT_SECRET:', process.env.JWT_SECRET ? 'Set' : 'Not set');
+console.log('MONGODB_URI:', process.env.MONGODB_URI ? 'Set' : 'Not set');
+console.log('NODE_ENV:', process.env.NODE_ENV);
+
 // Connect to database
 connectDB();
 
@@ -38,9 +44,11 @@ app.use("/api/user", userRoutes);
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error('Error:', err);
+  console.error('Error stack:', err.stack);
   res.status(500).json({ 
     message: 'Something went wrong!', 
-    error: process.env.NODE_ENV === 'development' ? err.message : undefined
+    error: process.env.NODE_ENV === 'development' ? err.message : undefined,
+    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
   });
 });
 

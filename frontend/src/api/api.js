@@ -49,6 +49,17 @@ api.interceptors.response.use(
 
 // Grocery endpoints
 export const getGroceries = async () => api.get('/groceries');
+export const getGroceryReport = async () => {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    throw new Error('Authentication required. Please log in.');
+  }
+  return api.get('/groceries/report', {
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  });
+};
 export const getGroceryById = async (id) => api.get(`/groceries/${id}`);
 export const addGrocery = async (grocery) => api.post('/groceries', grocery);
 export const updateGrocery = async (id, grocery) => api.put(`/groceries/${id}`, grocery);

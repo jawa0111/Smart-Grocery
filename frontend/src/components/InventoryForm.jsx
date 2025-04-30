@@ -7,6 +7,7 @@ const InventoryForm = () => {
     name: "",
     category: "",
     quantity: "",
+    typicalQuantity: "",
     unit: "",
     expiryDate: "",
     location: "Pantry",
@@ -78,6 +79,13 @@ const InventoryForm = () => {
       newErrors.quantity = 'Quantity must be a non-negative number';
     }
 
+    // Typical Quantity validation
+    if (!inventory.typicalQuantity) {
+      newErrors.typicalQuantity = 'Typical quantity is required';
+    } else if (isNaN(inventory.typicalQuantity) || Number(inventory.typicalQuantity) < 0) {
+      newErrors.typicalQuantity = 'Typical quantity must be a non-negative number';
+    }
+
     // Unit validation
     if (!inventory.unit.trim()) {
       newErrors.unit = 'Unit is required';
@@ -136,7 +144,8 @@ const InventoryForm = () => {
     try {
       const inventoryData = {
         ...inventory,
-        quantity: Number(inventory.quantity)
+        quantity: Number(inventory.quantity),
+        typicalQuantity: Number(inventory.typicalQuantity)
       };
 
       if (id) {
@@ -242,7 +251,7 @@ const InventoryForm = () => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label htmlFor="quantity" className="block text-sm font-medium text-gray-700">
-                  Quantity
+                  Current Quantity
                 </label>
                 <input
                   type="number"
@@ -264,25 +273,48 @@ const InventoryForm = () => {
               </div>
 
               <div>
-                <label htmlFor="unit" className="block text-sm font-medium text-gray-700">
-                  Unit
+                <label htmlFor="typicalQuantity" className="block text-sm font-medium text-gray-700">
+                  Typical Quantity
                 </label>
                 <input
-                  type="text"
-                  id="unit"
-                  name="unit"
-                  value={inventory.unit}
+                  type="number"
+                  id="typicalQuantity"
+                  name="typicalQuantity"
+                  value={inventory.typicalQuantity}
                   onChange={handleChange}
                   required
+                  min="0"
+                  step="0.01"
                   className={`mt-1 block w-full rounded-md ${
-                    errors.unit ? 'border-red-300' : 'border-gray-300'
+                    errors.typicalQuantity ? 'border-red-300' : 'border-gray-300'
                   } shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm`}
-                  placeholder="e.g., kg, g, liters"
+                  placeholder="e.g., 5"
                 />
-                {errors.unit && (
-                  <p className="mt-1 text-sm text-red-600">{errors.unit}</p>
+                {errors.typicalQuantity && (
+                  <p className="mt-1 text-sm text-red-600">{errors.typicalQuantity}</p>
                 )}
               </div>
+            </div>
+
+            <div>
+              <label htmlFor="unit" className="block text-sm font-medium text-gray-700">
+                Unit
+              </label>
+              <input
+                type="text"
+                id="unit"
+                name="unit"
+                value={inventory.unit}
+                onChange={handleChange}
+                required
+                className={`mt-1 block w-full rounded-md ${
+                  errors.unit ? 'border-red-300' : 'border-gray-300'
+                } shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm`}
+                placeholder="e.g., kg, g, liters"
+              />
+              {errors.unit && (
+                <p className="mt-1 text-sm text-red-600">{errors.unit}</p>
+              )}
             </div>
 
             <div>
