@@ -2,7 +2,6 @@ const Grocery = require("../models/Grocery");
 const Inventory = require("../models/Inventory");
 
 // @desc    Get all grocery items
-// @route   GET /api/groceries
 exports.getAllGroceries = async (req, res) => {
     try {
         const groceries = await Grocery.find({ user: req.user.id });
@@ -13,7 +12,6 @@ exports.getAllGroceries = async (req, res) => {
 };
 
 // @desc    Get single grocery item
-// @route   GET /api/groceries/:id
 exports.getGroceryById = async (req, res) => {
     try {
         const grocery = await Grocery.findOne({ _id: req.params.id, user: req.user.id });
@@ -25,7 +23,6 @@ exports.getGroceryById = async (req, res) => {
 };
 
 // @desc    Add new grocery item
-// @route   POST /api/groceries
 exports.createGrocery = async (req, res) => {
     try {
         const newGrocery = new Grocery({
@@ -40,7 +37,6 @@ exports.createGrocery = async (req, res) => {
 };
 
 // @desc    Update grocery item
-// @route   PUT /api/groceries/:id
 exports.updateGrocery = async (req, res) => {
     try {
         const updatedGrocery = await Grocery.findOneAndUpdate(
@@ -56,7 +52,6 @@ exports.updateGrocery = async (req, res) => {
 };
 
 // @desc    Delete grocery item
-// @route   DELETE /api/groceries/:id
 exports.deleteGrocery = async (req, res) => {
     try {
         const deletedGrocery = await Grocery.findOneAndDelete({ _id: req.params.id, user: req.user.id });
@@ -68,29 +63,19 @@ exports.deleteGrocery = async (req, res) => {
 };
 
 // @desc    Generate grocery report
-// @route   GET /api/groceries/report
-// @access  Private
 const generateReport = async (req, res) => {
     try {
         console.log('Starting report generation...');
-        
-        // Get all groceries
-        console.log('Fetching groceries...');
+
         const groceries = await Grocery.find({ user: req.user.id });
         console.log(`Found ${groceries.length} grocery items`);
 
-        // Get all inventory items
-        console.log('Fetching inventory...');
         const inventory = await Inventory.find({ user: req.user.id });
         console.log(`Found ${inventory.length} inventory items`);
 
-        // Calculate total cost
-        console.log('Calculating total cost...');
         const totalCost = groceries.reduce((sum, item) => sum + (item.price * item.quantity), 0);
         console.log(`Total cost: ${totalCost}`);
 
-        // Group by category
-        console.log('Grouping by category...');
         const categories = groceries.reduce((acc, item) => {
             const category = item.category || 'Uncategorized';
             if (!acc[category]) {
@@ -101,16 +86,13 @@ const generateReport = async (req, res) => {
         }, {});
         console.log(`Categories found: ${Object.keys(categories).join(', ')}`);
 
-        // Analyze inventory needs
-        console.log('Analyzing inventory needs...');
         const inventoryNeeds = [];
         for (const item of groceries) {
             try {
-                const inventoryItem = inventory.find(inv => 
-                    inv.name.toLowerCase() === item.name.toLowerCase() && 
+                const inventoryItem = inventory.find(inv =>
+                    inv.name.toLowerCase() === item.name.toLowerCase() &&
                     inv.user.toString() === req.user.id
                 );
-
                 if (!inventoryItem || inventoryItem.quantity < item.quantity) {
                     inventoryNeeds.push({
                         name: item.name,
@@ -124,7 +106,6 @@ const generateReport = async (req, res) => {
         }
         console.log(`Found ${inventoryNeeds.length} items needing inventory`);
 
-        // Generate report
         const report = {
             totalItems: groceries.length,
             totalCost,
@@ -146,10 +127,13 @@ const generateReport = async (req, res) => {
         res.json(report);
     } catch (error) {
         console.error('Error in generateReport:', error);
-        res.status(500).json({ 
+        res.status(500).json({
             message: 'Error generating report',
             error: error.message,
             stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
         });
     }
 };
+
+// ✅ Export generateReport properly
+exports.generateReport = generateReport;

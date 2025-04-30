@@ -6,6 +6,7 @@ import {
   Navigate,
 } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
+import FamilyMembers from "./components/FamilyMembers";
 import GroceryList from "./components/GroceryList";
 import GroceryForm from "./components/GroceryForm";
 import InventoryList from "./components/InventoryList";
@@ -58,6 +59,12 @@ const Navigation = () => {
                   className="border-transparent text-gray-100 hover:bg-blue-700 hover:text-white inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
                 >
                   Groceries
+                </Link>
+                <Link
+                  to="/family"
+                  className="border-transparent text-gray-100 hover:bg-blue-700 hover:text-white inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+                >
+                  Family Members
                 </Link>
                 {user.role === "inventory_manager" && (
                   <Link
@@ -140,6 +147,14 @@ function App() {
               <Route path="/profile" element={<UserProfile />} />
 
               {/* Protected Routes */}
+              <Route
+                path="/family"
+                element={
+                  <ProtectedRoute>
+                    <FamilyMembers />
+                  </ProtectedRoute>
+                }
+              />
               <Route
                 path="/"
                 element={

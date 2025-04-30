@@ -7,6 +7,7 @@ const groceryRoutes = require("./routes/groceryRoutes");
 const inventoryRoutes = require("./routes/inventoryRoutes");
 const authRoutes = require("./routes/authRoutes");
 const userRoutes = require("./routes/userRoutes");
+const familyInvitationRoutes = require("./routes/familyInvitationRoutes");
 
 // Load environment variables
 dotenv.config();
@@ -40,6 +41,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/groceries", groceryRoutes);
 app.use("/api/inventory", inventoryRoutes);
 app.use("/api/user", userRoutes);
+app.use("/api/family-invitations", familyInvitationRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

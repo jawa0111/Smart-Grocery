@@ -58,6 +58,27 @@ const getAuthHeaders = () => {
   };
 };
 
+// Family Invitation endpoints
+export const createFamilyInvitation = async (data) => {
+  const response = await api.post('/family-invitations', data, { headers: getAuthHeaders() });
+  return response.data;
+};
+
+export const getFamilyInvitations = async () => {
+  const response = await api.get('/family-invitations', { headers: getAuthHeaders() });
+  return response.data;
+};
+
+export const acceptFamilyInvitation = async (invitationId) => {
+  const response = await api.put(`/family-invitations/${invitationId}/accept`, {}, { headers: getAuthHeaders() });
+  return response.data;
+};
+
+export const rejectFamilyInvitation = async (invitationId) => {
+  const response = await api.put(`/family-invitations/${invitationId}/reject`, {}, { headers: getAuthHeaders() });
+  return response.data;
+};
+
 // Grocery endpoints
 export const getGroceries = async () => api.get('/groceries', { headers: getAuthHeaders() });
 export const getGroceryReport = async () => api.get('/groceries/report', { headers: getAuthHeaders() });
