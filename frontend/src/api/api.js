@@ -60,8 +60,15 @@ const getAuthHeaders = () => {
 
 // Family Invitation endpoints
 export const createFamilyInvitation = async (data) => {
-  const response = await api.post('/family-invitations', data, { headers: getAuthHeaders() });
-  return response.data;
+  try {
+    console.log('Sending invitation data:', data);
+    const response = await api.post('/family-invitations', data, { headers: getAuthHeaders() });
+    console.log('Invitation response:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('Full error details:', error.response?.data);
+    throw error;
+  }
 };
 
 export const getFamilyInvitations = async () => {

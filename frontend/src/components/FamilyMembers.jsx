@@ -6,6 +6,20 @@ import {
   rejectFamilyInvitation
 } from '../api/api';
 
+// Get the current user object from localStorage with proper error handling
+const getCurrentUser = () => {
+  try {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    if (!user.email) {
+      throw new Error('User email not found');
+    }
+    return user;
+  } catch (error) {
+    console.error('Error getting current user:', error);
+    return {};
+  }
+};
+
 const FamilyMembers = () => {
   const [invitations, setInvitations] = useState({
     received: [],
@@ -19,7 +33,22 @@ const FamilyMembers = () => {
       edit_inventory: false
     }
   });
+
+  const formatInvitationData = (invitation) => ({
+    sender: getCurrentUser()._id,
+    recipientEmail: invitation.recipientEmail.toLowerCase(),
+    relationship: invitation.relationship,
+    permissions: {
+      view_inventory: invitation.permissions.view_inventory,
+      edit_inventory: invitation.permissions.edit_inventory
+    },
+    status: 'pending'
+  });
+
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
   useEffect(() => {
     fetchInvitations();
@@ -28,6 +57,7 @@ const FamilyMembers = () => {
   const fetchInvitations = async () => {
     try {
       const data = await getFamilyInvitations();
+      console.log('Fetched invitations:', data);
       setInvitations(data);
     } catch (error) {
       console.error('Error fetching invitations:', error);
@@ -36,10 +66,22 @@ const FamilyMembers = () => {
     }
   };
 
+  const filterInvitations = (invitations) => {
+    if (!searchTerm) return invitations;
+    const term = searchTerm.toLowerCase();
+    return invitations.filter(invitation =>
+      invitation.sender.name.toLowerCase().includes(term) ||
+      invitation.recipientEmail.toLowerCase().includes(term) ||
+      invitation.relationship.toLowerCase().includes(term)
+    );
+  };
+
   const handleInviteSubmit = async (e) => {
     e.preventDefault();
     try {
-      await createFamilyInvitation(newInvitation);
+      const invitationData = formatInvitationData(newInvitation);
+      console.log('Sending invitation:', invitationData);
+      await createFamilyInvitation(invitationData);
       setNewInvitation({
         recipientEmail: '',
         relationship: 'other',
@@ -48,8 +90,12 @@ const FamilyMembers = () => {
           edit_inventory: false
         }
       });
+      setSuccess('Invitation sent successfully!');
       await fetchInvitations();
+      // Clear success message after 3 seconds
+      setTimeout(() => setSuccess(''), 3000);
     } catch (error) {
+      setError(error.response?.data?.message || 'Failed to send invitation');
       console.error('Error creating invitation:', error);
     }
   };
@@ -80,6 +126,16 @@ const FamilyMembers = () => {
       <div className="bg-white rounded-lg shadow p-6 mb-8">
         <h2 className="text-xl font-semibold mb-4">Invite New Member</h2>
         <form onSubmit={handleInviteSubmit} className="space-y-4">
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md">
+              {error}
+            </div>
+          )}
+          {success && (
+            <div className="bg-green-50 border border-green-200 text-green-600 px-4 py-3 rounded-md">
+              {success}
+            </div>
+          )}
           <div>
             <label className="block text-sm font-medium text-gray-700">
               Email Address
@@ -151,7 +207,18 @@ const FamilyMembers = () => {
 
       {/* Received Invitations */}
       <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-xl font-semibold mb-4">Received Invitations</h2>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-semibold">Received Invitations</h2>
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Search invitations..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-64 px-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+        </div>
         {loading ? (
           <div className="text-center py-4">Loading...</div>
         ) : (
@@ -165,7 +232,7 @@ const FamilyMembers = () => {
                   className="border rounded-lg p-4 flex justify-between items-center"
                 >
                   <div>
-                    <p className="font-medium">From: {invitation.sender.name}</p>
+                    <p className="font-medium">From: {invitation.sender?.name || 'Unknown'}</p>
                     <p className="text-sm text-gray-600">Relationship: {invitation.relationship}</p>
                     {invitation.permissions.view_inventory && (
                       <p className="text-sm text-gray-600">Can view inventory</p>

@@ -9,7 +9,14 @@ const invitationSchema = new mongoose.Schema({
     recipientEmail: {
         type: String,
         required: true,
-        lowercase: true
+        trim: true,
+        lowercase: true,
+        validate: {
+            validator: function(email) {
+                return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+            },
+            message: 'Please enter a valid email address'
+        }
     },
     status: {
         type: String,
@@ -45,5 +52,19 @@ const invitationSchema = new mongoose.Schema({
 invitationSchema.index({ recipientEmail: 1, status: 1 });
 
 const FamilyInvitation = mongoose.models.FamilyInvitation || mongoose.model('FamilyInvitation', invitationSchema);
+
+// Middleware to ensure sender is populated before saving
+invitationSchema.pre('save', async function(next) {
+  try {
+    const sender = await User.findById(this.sender);
+    if (!sender) {
+      return next(new Error('Sender user not found'));
+    }
+    this.sender = sender._id;
+    next();
+  } catch (error) {
+    next(error);
+  }
+});
 
 module.exports = FamilyInvitation;

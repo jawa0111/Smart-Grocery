@@ -5,7 +5,17 @@ const User = require('../models/User');
 exports.createInvitation = async (req, res) => {
     try {
         const { recipientEmail, relationship, permissions } = req.body;
-        const sender = req.user.id;
+        const sender = req.user._id;
+        
+        // Validate recipient email
+        if (!recipientEmail || !recipientEmail.trim()) {
+            return res.status(400).json({
+                message: 'Recipient email is required'
+            });
+        }
+
+        // Normalize email to lowercase
+        const normalizedEmail = recipientEmail.toLowerCase();
 
         // Check if sender is already inviting this email
         const existingInvitation = await FamilyInvitation.findOne({
@@ -20,19 +30,33 @@ exports.createInvitation = async (req, res) => {
             });
         }
 
-        // Create new invitation
+        // Create new invitation with proper sender information
         const invitation = new FamilyInvitation({
             sender,
-            recipientEmail,
+            recipientEmail: normalizedEmail,
             relationship,
-            permissions
+            permissions,
+            status: 'pending'
         });
 
-        await invitation.save();
+        // Save the invitation
+        const savedInvitation = await invitation.save();
+        
+        // Populate sender information
+        const populatedInvitation = await FamilyInvitation.findById(savedInvitation._id)
+          .populate('sender', 'name email');
+        
+        // Log the invitation details
+        console.log('Created invitation:', {
+            id: populatedInvitation._id,
+            sender: populatedInvitation.sender,
+            recipientEmail: populatedInvitation.recipientEmail,
+            status: populatedInvitation.status
+        });
 
         res.status(201).json({
             message: 'Invitation sent successfully',
-            invitation
+            invitation: populatedInvitation
         });
     } catch (error) {
         res.status(500).json({
@@ -47,11 +71,21 @@ exports.getInvitations = async (req, res) => {
     try {
         const user = req.user;
         
+        // Validate user
+        if (!user || !user.email) {
+            return res.status(400).json({
+                message: 'User information not found'
+            });
+        }
+        
         // Get invitations where user is the recipient
         const receivedInvitations = await FamilyInvitation.find({
-            recipientEmail: user.email,
+            recipientEmail: user.email.toLowerCase(),
             status: 'pending'
         }).populate('sender', 'name email');
+
+        // Log received invitations
+        console.log('Received invitations:', receivedInvitations);
 
         // Get invitations where user is the sender
         const sentInvitations = await FamilyInvitation.find({
@@ -59,9 +93,24 @@ exports.getInvitations = async (req, res) => {
             status: { $in: ['pending', 'accepted', 'rejected'] }
         }).populate('sender', 'name email');
 
+        // Ensure all invitations have proper sender information
+        const populatedReceived = await Promise.all(
+          receivedInvitations.map(invitation => 
+            FamilyInvitation.findById(invitation._id).populate('sender', 'name email')
+          )
+        );
+        const populatedSent = await Promise.all(
+          sentInvitations.map(invitation => 
+            FamilyInvitation.findById(invitation._id).populate('sender', 'name email')
+          )
+        );
+
+        // Log sent invitations
+        console.log('Sent invitations:', sentInvitations);
+
         res.status(200).json({
-            received: receivedInvitations,
-            sent: sentInvitations
+            received: populatedReceived,
+            sent: populatedSent
         });
     } catch (error) {
         res.status(500).json({
