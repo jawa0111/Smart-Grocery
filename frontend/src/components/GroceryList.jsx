@@ -11,6 +11,11 @@ const GroceryList = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const navigate = useNavigate();
 
+  // Calculate total cost of groceries
+  const totalCost = filteredGroceries.reduce((sum, grocery) => {
+    return sum + (grocery.price || 0) * (grocery.quantity || 0);
+  }, 0);
+
   useEffect(() => {
     fetchGroceries();
   }, []);
@@ -180,7 +185,10 @@ const GroceryList = () => {
         </div>
 
         <div className="flex justify-between items-center">
-          <h2 className="text-3xl font-bold text-gray-900">Grocery List</h2>
+          <div>
+            <h2 className="text-3xl font-bold text-gray-900">Grocery List</h2>
+            <p className="text-muted">Total Cost: LKR {totalCost.toFixed(2)}</p>
+          </div>
           <div className="flex space-x-4">
             <button
               onClick={handleGenerateReport}
@@ -252,66 +260,66 @@ const GroceryList = () => {
             </Link>
           </div>
         </div>
-      </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredGroceries.map((grocery) => (
-          <div
-            key={grocery._id}
-            className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300"
-          >
-            <div className="p-6">
-              <div className="flex justify-between items-start">
-                <div>
-                  <h3 className="text-xl font-semibold text-gray-900">
-                    {grocery.name}
-                  </h3>
-                  <p className="mt-1 text-sm text-indigo-600 font-medium">
-                    {grocery.category}
-                  </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredGroceries.map((grocery) => (
+            <div
+              key={grocery._id}
+              className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300"
+            >
+              <div className="p-6">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h3 className="text-xl font-semibold text-gray-900">
+                      {grocery.name}
+                    </h3>
+                    <p className="mt-1 text-sm text-indigo-600 font-medium">
+                      {grocery.category}
+                    </p>
+                  </div>
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                    {grocery.quantity} {grocery.unit}
+                  </span>
                 </div>
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                  {grocery.quantity} {grocery.unit}
-                </span>
+
+                {grocery.price && (
+                  <p className="mt-2 text-sm text-gray-500">
+                    Price: LKR {grocery.price} per {grocery.unit}
+                  </p>
+                )}
+
+                {grocery.storeName && (
+                  <p className="mt-1 text-sm text-gray-500">
+                    Store: {grocery.storeName}
+                  </p>
+                )}
               </div>
 
-              {grocery.price && (
-                <p className="mt-2 text-sm text-gray-500">
-                  Price: LKR {grocery.price} per {grocery.unit}
-                </p>
-              )}
+              <div className="bg-gray-50 px-6 py-4 flex justify-end space-x-3">
+                <button
+                  onClick={() => handleAddToInventory(grocery)}
+                  className="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md text-green-700 bg-green-100 hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
+                >
+                  Add to Inventory
+                </button>
 
-              {grocery.storeName && (
-                <p className="mt-1 text-sm text-gray-500">
-                  Store: {grocery.storeName}
-                </p>
-              )}
+                <Link
+                  to={`/edit/${grocery._id}`}
+                  className="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+                >
+                  Edit
+                </Link>
+
+                <button
+                  onClick={() => handleDelete(grocery._id)}
+                  className="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
+                >
+                  Delete
+                </button>
+              </div>
             </div>
-
-            <div className="bg-gray-50 px-6 py-4 flex justify-end space-x-3">
-              <button
-                onClick={() => handleAddToInventory(grocery)}
-                className="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md text-green-700 bg-green-100 hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
-              >
-                Add to Inventory
-              </button>
-
-              <Link
-                to={`/edit/${grocery._id}`}
-                className="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
-              >
-                Edit
-              </Link>
-
-              <button
-                onClick={() => handleDelete(grocery._id)}
-                className="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
   );

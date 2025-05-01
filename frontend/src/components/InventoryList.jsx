@@ -9,6 +9,33 @@ const InventoryList = () => {
   const [error, setError] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
 
+  // Calculate total quantity by category
+  const categoryCounts = filteredInventory.reduce((acc, item) => {
+    const category = item.category || 'Uncategorized';
+    if (!acc[category]) {
+      acc[category] = 0;
+    }
+    acc[category] += item.quantity || 0;
+    return acc;
+  }, {});
+
+  // Calculate expiry risk in terms of quantity
+  const getExpiryRiskCount = () => {
+    const today = new Date();
+    const riskCount = filteredInventory.reduce((sum, item) => {
+      if (!item.expiryDate) return sum;
+      const expiryDate = new Date(item.expiryDate);
+      const daysUntilExpiry = Math.ceil((expiryDate - today) / (1000 * 60 * 60 * 24));
+      
+      // Calculate risk based on days remaining
+      if (daysUntilExpiry <= 7) {
+        return sum + (item.quantity || 0);
+      }
+      return sum;
+    }, 0);
+    return riskCount;
+  };
+
   useEffect(() => {
     fetchInventory();
   }, []);
@@ -153,15 +180,42 @@ const InventoryList = () => {
           <span className="block sm:inline">{error}</span>
         </div>
       )}
-      <div className="relative">
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search inventory items..."
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-        />
+      
+      {/* Inventory Statistics */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div className="bg-white rounded-lg shadow p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Category Counts</h3>
+          <div className="space-y-2">
+            {Object.entries(categoryCounts).map(([category, count]) => (
+              <div key={category} className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">{category}</span>
+                <span className="font-medium text-indigo-600">{count} items</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="bg-white rounded-lg shadow p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Expiry Risk</h3>
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">Items expiring within 7 days</span>
+              <span className="font-medium text-red-600">{getExpiryRiskCount()} items</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-lg shadow p-6">
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search inventory items..."
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+          />
+        </div>
       </div>
+
       <div className="flex justify-between items-center">
         <h2 className="text-3xl font-bold text-gray-900">Inventory Management</h2>
         <div className="flex space-x-4">
