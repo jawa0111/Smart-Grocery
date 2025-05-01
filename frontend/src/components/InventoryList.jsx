@@ -4,12 +4,21 @@ import { Link } from "react-router-dom";
 
 const InventoryList = () => {
   const [inventory, setInventory] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filteredInventory, setFilteredInventory] = useState([]);
   const [error, setError] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
 
   useEffect(() => {
     fetchInventory();
   }, []);
+
+  useEffect(() => {
+    setFilteredInventory(searchQuery ? 
+      inventory.filter(item => item.name.toLowerCase().includes(searchQuery.toLowerCase()))
+      : inventory
+    );
+  }, [inventory, searchQuery]);
 
   const fetchInventory = async () => {
     const response = await getInventory();
@@ -144,6 +153,15 @@ const InventoryList = () => {
           <span className="block sm:inline">{error}</span>
         </div>
       )}
+      <div className="relative">
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Search inventory items..."
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+        />
+      </div>
       <div className="flex justify-between items-center">
         <h2 className="text-3xl font-bold text-gray-900">Inventory Management</h2>
         <div className="flex space-x-4">
@@ -179,7 +197,7 @@ const InventoryList = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {inventory.map((item) => {
+        {filteredInventory.map((item) => {
           const daysUntilExpiry = getDaysUntilExpiry(item.expiryDate);
           const expiryStatus = getExpiryStatus(daysUntilExpiry);
           
