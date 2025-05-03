@@ -8,6 +8,7 @@ const grocerySchema = new mongoose.Schema({
     price: { type: Number, default: 0 }, // Estimated price per unit (optional)
     totalCost: { type: Number, default: 0 }, // Auto-calculated (price × quantity)
     storeName: { type: String, default: "Unknown" }, // Store Name (Optional)
+    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }, // Reference to the user who owns this grocery item
 }, { timestamps: true });
 
 // Middleware to auto-calculate totalCost before saving

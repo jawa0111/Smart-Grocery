@@ -35,6 +35,14 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: ''
   },
+  familyMembers: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  }],
+  invitations: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  }],
   createdAt: {
     type: Date,
     default: Date.now

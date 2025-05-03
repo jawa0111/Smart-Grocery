@@ -25,7 +25,35 @@ const userSchema = new mongoose.Schema({
     type: String,
     enum: ['user', 'inventory_manager'],
     default: 'user'
-  }
+  },
+  phone: {
+    type: String,
+    default: ''
+  },
+  address: {
+    type: String,
+    default: ''
+  },
+  city: {
+    type: String,
+    default: ''
+  },
+  state: {
+    type: String,
+    default: ''
+  },
+  zipCode: {
+    type: String,
+    default: ''
+  },
+  familyMembers: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  }],
+  invitations: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  }]
 }, {
   timestamps: true
 });

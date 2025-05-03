@@ -1,4 +1,5 @@
-const User = require('../models/userModel');
+const User = require("../models/userModel");
+const jwt = require("jsonwebtoken");
 
 // @desc    Register new user
 // @route   POST /api/auth/register
@@ -10,13 +11,13 @@ const registerUser = async (req, res) => {
     // Check if user exists
     const userExists = await User.findOne({ email });
     if (userExists) {
-      return res.status(400).json({ message: 'User already exists' });
+      return res.status(400).json({ message: "User already exists" });
     }
 
     // Special case for inventory manager
-    let role = 'user';
-    if (email === 'grocery@admin.com') {
-      role = 'inventory_manager';
+    let role = "user";
+    if (email === "grocery@admin.com") {
+      role = "inventory_manager";
     }
 
     // Create user
@@ -24,15 +25,23 @@ const registerUser = async (req, res) => {
       name,
       email,
       password,
-      role
+      role,
     });
 
     if (user) {
+      // Generate JWT token (now includes _id and email)
+      const token = jwt.sign(
+        { _id: user._id, email: user.email, role: user.role },
+        process.env.JWT_SECRET,
+        { expiresIn: "30d" }
+      );
+
       res.status(201).json({
         _id: user._id,
         name: user.name,
         email: user.email,
-        role: user.role
+        role: user.role,
+        token,
       });
     }
   } catch (error) {
@@ -48,16 +57,24 @@ const loginUser = async (req, res) => {
     const { email, password } = req.body;
 
     // Check for user email
-    const user = await User.findOne({ email }).select('+password');
+    const user = await User.findOne({ email }).select("+password");
     if (user && (await user.matchPassword(password))) {
+      // Generate JWT token (now includes _id and email)
+      const token = jwt.sign(
+        { _id: user._id, email: user.email, role: user.role },
+        process.env.JWT_SECRET,
+        { expiresIn: "30d" }
+      );
+
       res.json({
         _id: user._id,
         name: user.name,
         email: user.email,
-        role: user.role
+        role: user.role,
+        token,
       });
     } else {
-      res.status(401).json({ message: 'Invalid email or password' });
+      res.status(401).json({ message: "Invalid email or password" });
     }
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -67,4 +84,4 @@ const loginUser = async (req, res) => {
 module.exports = {
   registerUser,
   loginUser,
-}; 
+};
