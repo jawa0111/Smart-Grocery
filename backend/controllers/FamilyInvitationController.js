@@ -4,8 +4,7 @@ const User = require('../models/User');
 // Create a new family invitation
 exports.createInvitation = async (req, res) => {
     try {
-        const { recipientEmail, relationship, permissions } = req.body;
-        const sender = req.user._id;
+        const { recipientEmail, relationship, permissions, sender } = req.body;
         
         // Validate recipient email
         if (!recipientEmail || !recipientEmail.trim()) {

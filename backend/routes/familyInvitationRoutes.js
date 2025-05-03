@@ -10,7 +10,7 @@ router.use(auth);
 router.post('/', FamilyInvitationController.createInvitation);
 
 // Get all invitations for a user
-router.get('/', FamilyInvitationController.getInvitations);
+router.get('/', auth, FamilyInvitationController.getInvitations);
 
 // Accept an invitation
 router.put('/:invitationId/accept', FamilyInvitationController.acceptInvitation);
