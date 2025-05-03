@@ -54,7 +54,8 @@ const getAuthHeaders = () => {
     throw new Error('Authentication required. Please log in.');
   }
   return {
-    Authorization: `Bearer ${token}`
+    'Authorization': `Bearer ${token}`,
+    'Content-Type': 'application/json'
   };
 };
 
