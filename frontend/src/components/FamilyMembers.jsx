@@ -106,6 +106,9 @@ const FamilyMembers = () => {
       await fetchInvitations();
     } catch (error) {
       console.error('Error accepting invitation:', error);
+    } finally {
+      alert("Invitation accepted");
+      window.location.reload();
     }
   };
 

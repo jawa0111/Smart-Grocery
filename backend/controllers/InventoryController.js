@@ -46,7 +46,7 @@ exports.createInventory = async (req, res) => {
         const inventoryData = {
             ...req.body,
             quantity: Number(req.body.quantity),
-            user: req.user.id
+            user: req.user._id
         };
 
         const newItem = new Inventory(inventoryData);
@@ -97,11 +97,11 @@ exports.deleteInventory = async (req, res) => {
 exports.generateReport = async (req, res) => {
     try {
         console.log('Starting inventory report generation...');
-        console.log('User ID:', req.user.id);
+        console.log('User ID:', req.user._id);
         
         // Fetch all inventory items for the user
         console.log('Fetching inventory items...');
-        const inventory = await Inventory.find({ user: req.user.id });
+        const inventory = await Inventory.find({ user: req.user._id });
         console.log(`Found ${inventory.length} inventory items`);
 
         if (!inventory || !Array.isArray(inventory)) {

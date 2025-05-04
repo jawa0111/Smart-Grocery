@@ -2,13 +2,14 @@ const express = require("express");
 const router = express.Router();
 const GroceryListController = require("../controllers/GroceryListController");
 const { protect } = require("../middleware/authMiddleware");
+const auth = require("../middleware/auth")
 
 // Define routes
-router.get("/", protect, GroceryListController.getAllGroceries);
-router.get("/report", protect, GroceryListController.generateReport);
-router.post("/", protect, GroceryListController.createGrocery);
-router.get("/:id", protect, GroceryListController.getGroceryById);
-router.put("/:id", protect, GroceryListController.updateGrocery);
-router.delete("/:id", protect, GroceryListController.deleteGrocery);
+router.get("/", auth, GroceryListController.getAllGroceries);
+router.get("/report", auth, GroceryListController.generateReport);
+router.post("/", auth, GroceryListController.createGrocery);
+router.get("/:id", auth, GroceryListController.getGroceryById);
+router.put("/:id", auth, GroceryListController.updateGrocery);
+router.delete("/:id", auth, GroceryListController.deleteGrocery);
 
 module.exports = router;

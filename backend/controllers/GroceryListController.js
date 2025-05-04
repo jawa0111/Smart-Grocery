@@ -27,7 +27,7 @@ exports.createGrocery = async (req, res) => {
     try {
         const newGrocery = new Grocery({
             ...req.body,
-            user: req.user.id
+            user: req.user._id
         });
         await newGrocery.save();
         res.status(201).json(newGrocery);

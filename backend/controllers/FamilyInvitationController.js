@@ -123,7 +123,7 @@ exports.getInvitations = async (req, res) => {
 exports.acceptInvitation = async (req, res) => {
     try {
         const { invitationId } = req.params;
-        const user = req.user;
+        const user = new User(req.user);
 
         const invitation = await FamilyInvitation.findOne({
             _id: invitationId,

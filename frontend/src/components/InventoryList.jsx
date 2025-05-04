@@ -63,11 +63,11 @@ const InventoryList = () => {
       setIsGenerating(true);
       
       // Check if user is logged in
-      const token = localStorage.getItem('token');
-      if (!token) {
-        setError('Please log in to generate reports');
-        return;
-      }
+      // const token = localStorage.getItem('token');
+      // if (!token) {
+      //   setError('Please log in to generate reports');
+      //   return;
+      // }
 
       console.log('Requesting inventory report...');
       const response = await getInventoryReport();
